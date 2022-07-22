@@ -1,0 +1,7 @@
+__pycache__/
+results/
+assets/SMPL
+assets/SMGL
+build/
+dist/
+*.egg-info
