@@ -1,6 +1,5 @@
 import os
 import pickle
-import numpy as np # for test, remove it after testing
 import tensorflow as tf
 from tf_smpl.layers import BlendSkinning
 
@@ -53,74 +52,6 @@ class SMGL(tf.keras.layers.Layer):
       )
       self.J_transforms_inv = tf.linalg.inv(self.J_transforms)
       self.blend_skinning = BlendSkinning(v_weights=params["weights"], dtype=self.dtype)
-
-      self.edges = self.get_vertex_connectivity(self.faces)
-
-      self.f_area = self.get_faces_area(self.v_template)
-      self.f_connectivity, self.f_connectivity_edges = self.get_face_connectivity()
-
-      self.v_mass = self.get_vertices_mass(self.v_template)
-
-  def get_face_connectivity(self, faces=None):
-    faces = self.faces if faces is None else faces
-    faces = faces.numpy() if tf.is_tensor(faces) else faces
-    G = {tuple(edge): [] for edge in self.edges.numpy()}
-    for index, face in enumerate(faces):
-      num = len(face)
-      for n in range(num):
-        k = (n + 1) % num
-        edge = tuple(sorted([face[n], face[k]]))
-        G[edge] += [index]
-
-    adjacent_faces, adjacent_face_edges = [], []
-    for edge in G:
-      assert len(G[edge]) < 3
-      if len(G[edge]) == 2:
-        adjacent_faces += [G[edge]]
-        adjacent_face_edges += [list(edge)]
-
-    return (
-      tf.convert_to_tensor(
-        value=adjacent_faces,
-        name="f_connectivity",
-        dtype=self.faces.dtype
-      ),
-      tf.convert_to_tensor(
-        value=adjacent_face_edges,
-        name="f_connectivity_edges",
-        dtype=self.faces.dtype
-      )
-    )
-
-  def get_vertex_connectivity(self, faces):
-    faces = faces.numpy() if tf.is_tensor(faces) else faces
-    edges = set()
-    for face in faces:
-      v_num = len(face)
-      for index in range(v_num):
-        k = (index + 1) % v_num
-        edges.add(tuple(sorted([face[index], face[k]])))
-    return tf.convert_to_tensor(
-      value=list(edges),
-      name="edges",
-      dtype=self.faces.dtype
-    )
-
-  def get_faces_area(self, vertices, faces=None):
-    if faces is None:
-      faces = self.faces
-    u = tf.gather(vertices, faces[:, 2]) - tf.gather(vertices, faces[:, 0])
-    v = tf.gather(vertices, faces[:, 1]) - tf.gather(vertices, faces[:, 0])
-    return tf.norm(tf.linalg.cross(u, v), axis=-1) / 2.0
-
-  def get_vertices_mass(self, vertices, faces=None, mass=0.3):
-    if faces is None:
-      faces = self.faces
-    f_mass = self.f_area * mass
-    v_mass = tf.zeros(shape=[vertices.shape[0]])
-    for index in range(faces.shape[1]):
-      v_mass = tf.tensor_scatter_nd_add(v_mass, tf.reshape(faces[:, index], shape=[-1, 1]), f_mass / 3)
-    return v_mass
 
   def call(self, shape, pose=None, trans=None, body_dict=None, psd=None):
     v_shaped = self.v_template + tf.reshape(
