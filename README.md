@@ -17,7 +17,7 @@ $ smgl-build --config <path-to-config:config> --path <path-to-save:pkl>
 ```
 ## Local SMGL model builder
 ```
-$ python tf_smgl/bin/build_smgl --config <path-to-config:config> --path <path-to-save:pkl>
+$ python tf_smgl/bin/build_smgl.py --config <path-to-config:config> --path <path-to-save:pkl>
 ```
 
 ## Run SMGL model
