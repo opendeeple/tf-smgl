@@ -18,7 +18,8 @@ from ..utils import save_pc2_frames
 
 def args_parser():
   parser = argparse.ArgumentParser(description="Simple training script for training a SNUG network")
-  parser.add_argument('--path', help="Path to SMGL model", required=True)
+  parser.add_argument('--path', help="SMPL file path", required=True)
+  parser.add_argument('--smpl', help="Path to SMGL model", required=True)
   parser.add_argument('--motion', help="Data file poses.npz", required=True)
   parser.add_argument('--batch-size', help="Batch size", default=16)
   parser.add_argument('--shape-range', help="Shape range to generate", default=0)
@@ -28,7 +29,7 @@ def args_parser():
 
 def main():
   args = args_parser()
-  smpl = SMPL("assets/SMPL/basicModel_f_lbs_10_207_0_v1.0.0.pkl")
+  smpl = SMPL(args.smpl)
   smgl = SMGL(args.path)
   v_cloth_template = smpl(poses=smgl.poses, shapes=smgl.shapes, trans=smgl.trans)
   smpl.v_cloth_template = v_cloth_template[0]
